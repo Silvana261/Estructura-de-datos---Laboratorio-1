@@ -22,6 +22,8 @@ def generar_matriz(ruta_salida, filas, columnas, filas_por_bloque=500, semilla=N
     
     '''
     Esta función se encarga de generar una matriz de valores booleanos y alamacenarla en el disco.
+    Teniendo como separador de cada fila de la columna una ","
+    
     Parameters:
     - ruta_salida: Es un string con la ruta del archivo donde se almacenará la matriz.
     - filas: Es un entero con el número total de filas de la matriz
@@ -102,53 +104,49 @@ def generar_matriz(ruta_salida, filas, columnas, filas_por_bloque=500, semilla=N
                 transcurrido = time.time() - inicio
                 print(f"  {filas_escritas:,}/{filas:,} filas escritas ({transcurrido:.1f} s)")
 
+    
+    # INFORMACIÓN ADICIONAL
+    # Tiempo total para generar la matriz
     total = time.time() - inicio
+    
+    # Se obtiene el tamaño real de los datos.
     tam_real = os.path.getsize(ruta_salida)
     print(f"\nListo. Archivo creado: {ruta_salida}")
     print(f"Tamano real: {tam_real:,} bytes ({tam_real / 1024**3:.2f} GB)")
     print(f"Tiempo total: {total:.1f} s")
 
 
+# PROGRAMA PRINCIPAL
+
 if __name__ == "__main__":
-    # ---- AJUSTA AQUI EL TAMANO DE LA MATRIZ ----
-    # Recomendado: probar primero con valores pequenos, ej. 100 x 100
+    # Ajustamos tamaños de filas y columnas. O sea, diez mil millones de elementos.
     FILAS = 100_000
     COLUMNAS = 100_000
     ARCHIVO = "matriz.txt"
 
+    # Se genera la matriz con la función anterior, procesando 500 filas por cada bloque y una semilla de 42 que produce la misma matriz.
     generar_matriz(ARCHIVO, FILAS, COLUMNAS, filas_por_bloque=500, semilla=42)
     
     
     
 
-"""
-Lee y verifica la matriz de booleanos generada por generar_matriz.py,
-SIN asumir de antemano el numero de filas ni columnas: todo se deduce
-leyendo el propio archivo.
+'''
+Esta parte permite trabajar con matriz sin tener que cargarla por completo a RAM
+Aprovechando que todas las filas tienen el mismo tamaño y los elementos son de longitud fija
+podemos calcular las posiciones directamente de cualquier elemento del archivo (offset).
+'''
 
-FORMATO ESPERADO
------------------
-    v0v1v2...v(n-1),v0v1v2...v(n-1),...,v0v1v2...v(n-1),
-
-- Cada valor booleano ocupa 1 caracter ('1' o '0'), sin separador entre
-  valores de la misma fila.
-- Cada fila termina con una unica coma.
-
-COMO SE DEDUCEN LAS DIMENSIONES
----------------------------------
-- Columnas: posicion de la PRIMERA coma en el archivo.
-- Bytes por fila: columnas + 1 (la coma).
-- Filas: tamano del archivo / bytes por fila (debe ser division exacta).
-- Verificacion extra: la coma debe aparecer exactamente cada
-  (columnas + 1) bytes en TODAS las filas, no solo en la primera.
-"""
 
 import os
 import random
 
 
 class MatrizArchivo:
+    
+    ''' Esta clase representa la matriz almacenada en el disco'''
+    
     def __init__(self, ruta):
+        # Se guarda la ruta del archivo y también se abre el archivo en modo lectura binaria "rb"
         self.ruta = ruta
         self.f = open(ruta, 'rb')
 
