@@ -107,8 +107,8 @@ class MatrizArchivo:
             # Se leen los valores de la fila.
             fila = self.file.read(self.columnas)
 
-        # Se verifica que todos los valores sean '0' o '1'.
-        for b in fila:
+            # Se verifica que todos los valores sean '0' o '1'.
+            for b in fila:
                 if b != ord('0') and b != ord('1'):
                     return False
 
