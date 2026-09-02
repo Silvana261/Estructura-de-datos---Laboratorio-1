@@ -6,17 +6,15 @@
 
 ## Descripción
 
-Este proyecto consiste en la generación, almacenamiento y lectura de una matriz de valores booleanos `0` y `1` de gran tamaño, utilizando el disco duro como medio de almacenamiento.
+Este laboratorio consiste en la generación, almacenamiento y lectura de una matriz de valores booleanos `0` y `1` de gran tamaño, utilizando el disco duro como medio de almacenamiento.
 
-La matriz utilizada en el proyecto tiene unas dimensiones de **100.000 filas × 100.000 columnas**, lo que representa **10.000 millones de valores**.
+La matriz utilizada tiene unas dimensiones de **100.000 filas × 100.000 columnas**, lo que representa **10.000 millones de valores**.
 
 Debido al gran tamaño de la matriz, no resulta conveniente mantenerla completa en la memoria RAM. Por esta razón, la matriz se genera y almacena directamente en un archivo, trabajando por bloques.
 
 El archivo utiliza un formato sencillo en el que cada valor ocupa un byte y cada fila termina con una coma como separador.
 
-## Objetivo
 
-El objetivo principal es demostrar cómo se puede trabajar con una matriz de gran tamaño almacenada en disco sin necesidad de cargarla completamente en memoria.
 
 El programa permite:
 
@@ -36,7 +34,7 @@ La matriz se almacena en un archivo binario con la siguiente estructura:
 
 Cada valor de la matriz se almacena como el carácter `0` o `1`, ocupando un byte.
 
-Cada fila termina con una única coma:
+Cada fila termina con una única coma como separador de filas:
 
 ```text
 1010010110,
@@ -64,7 +62,6 @@ Para generar los valores se utiliza **NumPy**, que permite generar múltiples va
 
 También se utiliza este archivo para:
 
-* Calcular el tamaño estimado de la matriz.
 * Medir el tiempo de generación.
 * Crear el archivo en modo binario.
 * Escribir los bloques de datos en el disco.
@@ -124,7 +121,7 @@ Se utiliza como evidencia de que es posible extraer una fila específica de la m
 
 ## Acceso directo a la matriz
 
-Una de las características principales del proyecto es que no es necesario recorrer todas las filas anteriores para acceder a una fila determinada.
+Una de las características principales del programa es que no es necesario recorrer todas las filas anteriores para acceder a una fila determinada.
 
 La posición de una fila se calcula mediante:
 
@@ -144,7 +141,7 @@ Esto permite obtener un valor específico leyendo únicamente un byte del archiv
 
 ## Verificación de la matriz
 
-El proyecto realiza dos verificaciones principales.
+Se realizan dos verificaciones principales.
 
 ### Verificación mediante las comas
 
