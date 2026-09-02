@@ -1,6 +1,6 @@
 # Matriz almacenada en disco
 
-## Integrantes
+## Laboratorio 1
 
 **Estudiante:** Silvana Saavedra Londoño 
 
