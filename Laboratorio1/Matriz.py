@@ -130,6 +130,7 @@ if __name__ == "__main__":
     
     
 
+
 '''
 Esta parte permite trabajar con matriz sin tener que cargarla por completo a RAM
 Aprovechando que todas las filas tienen el mismo tamaño y los elementos son de longitud fija
