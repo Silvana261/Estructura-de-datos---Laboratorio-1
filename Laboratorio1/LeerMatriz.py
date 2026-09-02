@@ -1,162 +1,170 @@
-"""
-Lee y verifica la matriz de booleanos generada por generar_matriz.py,
-SIN asumir de antemano el numero de filas ni columnas: todo se deduce
-leyendo el propio archivo.
-
-FORMATO ESPERADO
------------------
-    v0v1v2...v(n-1),v0v1v2...v(n-1),...,v0v1v2...v(n-1),
-
-- Cada valor booleano ocupa 1 caracter ('1' o '0'), sin separador entre
-  valores de la misma fila.
-- Cada fila termina con una unica coma.
-
-COMO SE DEDUCEN LAS DIMENSIONES
----------------------------------
-- Columnas: posicion de la PRIMERA coma en el archivo.
-- Bytes por fila: columnas + 1 (la coma).
-- Filas: tamano del archivo / bytes por fila (debe ser division exacta).
-- Verificacion completa: se cuentan TODAS las comas del archivo (por
-  bloques, sin cargarlo entero en RAM) y se confirma que ese total
-  coincide con las filas calculadas. Esa coincidencia es la prueba de
-  que, sin conocer de antemano el contenido del archivo, se puede
-  determinar que es una matriz y con que dimensiones.
-"""
 
 import os
 import random
 
-
 class MatrizArchivo:
+    
+    
+    '''
+    
+    Esta parte del programa permite leer, verificar y acceder a una matriz almacenada en un
+    archivo binario. 
+    Identifica la matriz de manera que cada valor ocupa un byte correspondiente al carácter "0" o "1".
+    Y cada fila termina con una coma como separador.
+    Las dimensiones de la matriz no se reciben, por lo que no se sabe que es una matriz, sino que
+    se deduce a partir del archivo.
+    
+    '''
     def __init__(self, ruta):
+        '''
+        Recibe la ruta del archivo que contiene la matriz.
+        '''
+        
+        
         self.ruta = ruta
-        self.f = open(ruta, 'rb')
+        
+        # Se abre el archivo en modo lectura binaria.
+        self.file = open(ruta, 'rb')
 
-        # Leemos solo un fragmento inicial para encontrar la primera coma,
-        # NO hace falta leer el archivo completo para esto.
-        fragmento = self.f.read(1 << 20)  # 1 MB de muestra
-        pos_coma = fragmento.find(b',')
-        if pos_coma == -1:
+
+        # Aquí se lee el primer MB del archivo para encontrar la primera coma, o sea la primera fila.
+        fragmento = self.file.read(1 << 20)  # 1 MB de muestra se guarda en fragmento.
+        posicion_coma = fragmento.find(b',')  # find busca la primera aparición de la coma.
+        if posicion_coma == -1:
             raise ValueError(
                 "No se encontro ninguna coma en el fragmento inicial: "
-                "el archivo no parece tener el formato esperado."
+                "El archivo no corresponde a la matriz a la estructura establecida."
             )
 
-        self.columnas = pos_coma
+        #La posición de la primera coma corresponde a la cantidad de columnas de la matriz.
+        self.columnas = posicion_coma
+        
+        # La cantidad total de bytes en cada fila es la cantidad de columnas ya que cada valor ocupa un byte + la coma que separa la fila.
         self.bytes_por_fila = self.columnas + 1
 
-        tam_archivo = os.path.getsize(ruta)
-        if tam_archivo % self.bytes_por_fila != 0:
+        # Se obtiene el tamaño total del archivo interactuando con el sistema operativo, obteniendo con getsize la cantidad exacta de bytes.
+        tamanno_archivo = os.path.getsize(ruta)
+        
+        
+        # COMPROBAR QUE COINCIDE CON UNA MATRIZ
+        # El tamaño del archivo debería ser divisible exactamente entre el tamaño de una fila, para que tenga las filas completas.
+        if tamanno_archivo % self.bytes_por_fila != 0:
             raise ValueError(
                 "El tamano del archivo no es multiplo exacto del tamano "
                 "de una fila: no parece ser una matriz bien formada."
             )
 
-        self.filas = tam_archivo // self.bytes_por_fila
+        #Se calcula la cantidad de filas dividiendo el tamaño total entre el tamaño de una fila
+        self.filas = tamanno_archivo // self.bytes_por_fila
+        
+        
 
     def contar_filas_por_comas(self, tam_bloque=1 << 20):
         """
-        Cuenta el numero TOTAL de comas en el archivo completo, leyendolo
-        por bloques (por defecto de 1 MB) para no cargarlo entero en RAM.
+        Cuenta todas las comas existentes en el archivo. El cual se leerá por bloques
+        para evitar cargarlo completo a memoria. La cantidad de comas deberá coincidir con la 
+        cantidad de filas calculada a partir del tamaño del archivo.
+        
+        PARAMETER:
+        - tam_bloque (int): Cantidad de bytes que se leen en cada bloque ( 1 MB)
 
-        Como cada fila termina en EXACTAMENTE una coma, el numero total de
-        comas encontradas debe coincidir con el numero de filas que ya
-        habiamos calculado con tamano_archivo / bytes_por_fila.
-
-        Esta es la prueba central de que el archivo es una matriz: sin
-        saber de antemano que contiene, contamos cuantas veces aparece el
-        separador de fila, y si ese conteo coincide con las filas
-        esperadas (y estas, multiplicadas por las columnas detectadas por
-        la posicion de la primera coma, dan el total de valores), queda
-        demostrado que el archivo tiene la estructura de una matriz de
-        'filas' x 'columnas' booleanos.
         """
-        self.f.seek(0)
+        # seek() es el método que desplaza la posición del cursor de lectura o escritura dentro del archivo
+        # El cual ponemos en el byte incial.
+        self.file.seek(0)
         total_comas = 0
+        
+        # El archivo se lee por bloques para no cargarlo todo de una vez.
         while True:
-            bloque = self.f.read(tam_bloque)
+            bloque = self.file.read(tam_bloque)
+
             if not bloque:
                 break
+
+            # Se cuentan las comas encontradas en cada bloque.
             total_comas += bloque.count(b',')
 
-        return {
-            "comas_encontradas": total_comas,
-            "filas_esperadas": self.filas,
-            "columnas_detectadas": self.columnas,
-            "coincide": total_comas == self.filas,
-        }
+        # Cada fila termina en una coma.
+        # Por lo tanto, el número de comas debe ser igual
+        # al número de filas calculadas.
+        return total_comas == self.filas
 
     def verificar_contenido(self, muestras=500):
         """
-        Verifica el CONTENIDO de la matriz (no solo la estructura):
-        - Todos los bytes de valores deben ser '0' o '1' (ningun caracter raro,
-          senal de que el archivo no se corrompio).
-        - Reporta la proporcion de True/False encontrada, que deberia rondar
-          el 50% cada uno si la generacion aleatoria fue correcta.
-        Revisa una muestra de filas para no tener que leer archivos enormes
-        por completo.
+       Verifica que los valores almacenados sean solo 0 y 1 
+       Selecciona una muestra aleatoria de filas.
         """
         n_chequear = min(muestras, self.filas)
         indices = (random.sample(range(self.filas), n_chequear)
                    if self.filas > n_chequear else range(self.filas))
 
-        total_valores = 0
-        total_verdaderos = 0
-        bytes_invalidos = 0
-
+        # Se revisan las filas seleccionadas.
         for i in indices:
-            self.f.seek(i * self.bytes_por_fila)
-            fila = self.f.read(self.columnas)
-            for b in fila:
-                if b == ord('1'):
-                    total_verdaderos += 1
-                elif b != ord('0'):
-                    bytes_invalidos += 1
-            total_valores += len(fila)
 
-        proporcion_verdaderos = total_verdaderos / total_valores if total_valores else 0
+            # Se calcula directamente la posición donde comienza la fila.
+            self.file.seek(i * self.bytes_por_fila)
 
-        return {
-            "filas_revisadas": n_chequear,
-            "valores_revisados": total_valores,
-            "bytes_invalidos": bytes_invalidos,
-            "contenido_valido": bytes_invalidos == 0,
-            "proporcion_true": round(proporcion_verdaderos, 4),
-        }
+            # Se leen los valores de la fila.
+            fila = self.file.read(self.columnas)
+
+        # Se verifica que todos los valores sean '0' o '1'.
+        for b in fila:
+                if b != ord('0') and b != ord('1'):
+                    return False
+
+        # Si ninguna posición presentó un valor inválido,
+        # el contenido se considera válido.
+        return True
 
     def obtener_fila(self, i):
-        """Devuelve la fila i como lista de booleanos, con un solo seek+read."""
+        """
+        Obtiene una fila específica de la matriz.
+
+        El acceso se realiza directamente mediante su posición en el
+        archivo, por lo que no es necesario recorrer las filas
+        anteriores.
+        
+        PARAMETERS:
+        - i (int): índice de la fila.
+        """
+        
+        # Se verifica que la fila exista.
         if not (0 <= i < self.filas):
             raise IndexError("Fila fuera de rango")
-        self.f.seek(i * self.bytes_por_fila)
-        valores = self.f.read(self.columnas)
-        return [b == ord('1') for b in valores]
+        # Se calcula la posición exacta donde comienza la fila, sin necesidad de recorrerlas todas.
+        self.file.seek(i * self.bytes_por_fila)
+        valores = self.file.read(self.columnas)
+        return [b == ord('1') for b in valores] # Se leen y convierten los caracteres a valores booleanos.
 
     def guardar_fila(self, i, ruta_salida):
         """
-        Extrae la fila i (usando obtener_fila, sin leer el archivo
-        completo) y la guarda en un archivo de texto aparte, separada
-        por comas. Sirve como evidencia concreta: un archivo chiquito
-        que contiene solo una fila de la matriz gigante, extraida
-        directamente por posicion (offset), sin recorrer el archivo
-        original.
+        Extrae una fila y la guarda en un archivo de texto.
         """
+        # Se obtiene la fila con la función anterior, directamente del archivo
         valores = self.obtener_fila(i)
+        
+        # Se convierte a texto, utilizando comas entre los valores para ser mostrados
         contenido = ",".join("1" if v else "0" for v in valores)
+        # Se crea un archivo independiente que contiene solo a la fila.
         with open(ruta_salida, "w") as f_salida:
             f_salida.write(contenido)
         return ruta_salida
 
     def obtener_valor(self, i, j):
-        """Devuelve el valor (i, j) leyendo un unico byte del archivo."""
+        """
+        Devuelve el valor (i, j) leyendo un unico byte del archivo.
+        """
+        # Se verifica que la fila y la columna estén dentro los límites.
         if not (0 <= i < self.filas):
             raise IndexError("Fila fuera de rango")
         if not (0 <= j < self.columnas):
             raise IndexError("Columna fuera de rango")
-        self.f.seek(i * self.bytes_por_fila + j)
-        return self.f.read(1) == b'1'
+        
+        # Se calcula la posición exacta del elemento dentro del archivo.
+        # Se multiplica la fila por el tamaño de una fila y se suma
+        # la posición de la columna.
+        self.file.seek(i * self.bytes_por_fila + j)
+        return self.file.read(1) == b'1'
 
     def cerrar(self):
-        self.f.close()
-
-
+        self.file.close() # Para liberar el recurso.

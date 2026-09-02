@@ -3,132 +3,74 @@ import os
 from GenerarMatriz import generar_matriz
 from LeerMatriz import MatrizArchivo
 
-
+# Se obtiene la carpeta donde se encuentra este archivo.
 CARPETA = os.path.dirname(os.path.abspath(__file__))
 
-ARCHIVO = os.path.join(
-    CARPETA,
-    "matriz.txt"
-)
-
+# Se define la ruta donde se almacenará la matriz.
+ARCHIVO = os.path.join(CARPETA, "matriz.txt")
 
 
 def main():
 
-    # 1. Generar la matriz
-    print("=== GENERACIÓN DE LA MATRIZ ===")
+    # Primero se genera la matriz y se almacena en el disco duro directamente.
+    print("\n=== GENERACIÓN DE LA MATRIZ ===\n")
 
-    generar_matriz(
-        ARCHIVO,
-        filas=100_000,
-        columnas=100_000
-    )
+    generar_matriz(ARCHIVO,filas=100_000,columnas=100_000)
 
     print("\nMatriz generada correctamente.\n")
 
 
-    # 2. Abrir la matriz desde el archivo
-    print("=== LECTURA Y VERIFICACIÓN ===")
+    # Luego se abre el archivo para poder acceder y verificar la matriz.
+    print("\n=== LECTURA Y VERIFICACIÓN ===\n")
 
-    m = MatrizArchivo(ARCHIVO)
+    matriz = MatrizArchivo(ARCHIVO)
 
     try:
-
-        # Detectar dimensiones
+        print("\nDEMOSTRACIÓN DE MATRIZ A PARTIR DEL NÚMERO DE COMAS EN EL ARCHIVO:\n")
+        
+        # Primero se verifica que la cantidad de comas coincida con la cantidad 
+        # de filas calculada a partir del archivo.
         print(
             "Dimensiones detectadas SOLO a partir del archivo:"
         )
-
-        print(f"  Columnas: {m.columnas:,}")
-        print(f"  Filas: {m.filas:,}")
-        print(f"  Bytes por fila: {m.bytes_por_fila:,}")
-
-
-        # Verificar las comas
-        print(
-            "\nContando comas en TODO el archivo..."
-        )
-
-        resultado = m.contar_filas_por_comas()
-
-        print(
-            f"  Comas encontradas: "
-            f"{resultado['comas_encontradas']:,}"
-        )
-
-        print(
-            f"  Filas esperadas: "
-            f"{resultado['filas_esperadas']:,}"
-        )
-
-        print(
-            f"  Coincide: "
-            f"{resultado['coincide']}"
-        )
+        
+        if matriz.contar_filas_por_comas():
+                print("\nLa cantidad de comas coincide con la cantidad de filas. Si es una matriz con las dimensiones correctas.\n")
+        else:
+                print("\nLa cantidad de comas no coincide con la cantidad de filas. No es una matriz con las dimensiones correctas.\n")
 
 
-        # Verificar contenido
-        print(
-            "\nVerificando contenido..."
-        )
+        print("\nVERIFICACIÓN DE TIPO DE CONTENIDO DE LA MATRIZ \n") 
 
-        resultado = m.verificar_contenido()
-
-        print(
-            f"  Filas revisadas: "
-            f"{resultado['filas_revisadas']:,}"
-        )
-
-        print(
-            f"  Valores revisados: "
-            f"{resultado['valores_revisados']:,}"
-        )
-
-        print(
-            f"  Bytes inválidos: "
-            f"{resultado['bytes_invalidos']}"
-        )
-
-        print(
-            f"  Contenido válido: "
-            f"{resultado['contenido_valido']}"
-        )
-
-        print(
-            f"  Proporción de True: "
-            f"{resultado['proporcion_true']:.2%}"
-        )
+        # Luego se verifica que los valores almacenados sean únicamente 0 o 1.
+        if matriz.verificar_contenido():
+            print("\nEl contenido de la matriz es válido.\n")
+        else:
+            print("\nEl contenido de la matriz no es válido.\n")
 
 
-        # Acceso aleatorio
-        print("\n=== ACCESO ALEATORIO ===")
+        # ACCESO A LOS ELEMENTOS DE LA MATRIZ: 
+        print("\n===  ACCESOS  A LA MATRIZ ===\n")
 
-        print(
-            "Primera fila "
-            "(primeros 20 valores):"
-        )
-        print(m.obtener_fila(0)[:20])
+    
+        print("\nPrimera fila (primeros 20 valores):" )
+        print(matriz.obtener_fila(0)[:20])
 
-        print(
-            "\nÚltima fila "
-            "(primeros 20 valores):"
-        )
-        print(m.obtener_fila(m.filas - 1)[:20])
+        print("\nÚltima fila (primeros 20 valores):")
+        print(matriz.obtener_fila(matriz.filas - 1)[:20])
 
-        print(
-            "\nValor en "
-            "(fila=500, columna=999):"
-        )
-        print(m.obtener_valor(500, 999))
+        print("\nValor en (fila=500, columna=999):")
+        print(matriz.obtener_valor(500, 999))
 
 
-        # Guardar una fila como evidencia
+        # Se extrae la primera fila y se guarda en un archivo
+        # independiente para evidenciar acceso a la matriz.
         ruta_fila_0 = os.path.join(
             os.path.dirname(ARCHIVO),
             "fila_0.txt"
         )
 
-        m.guardar_fila(
+        matriz.guardar_fila(
             0,
             ruta_fila_0
         )
@@ -139,7 +81,7 @@ def main():
         )
 
     finally:
-        m.cerrar()
+        matriz.cerrar()
 
 
 if __name__ == "__main__":
